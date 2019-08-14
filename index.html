@@ -1,22 +1,36 @@
-<head>
-	<title>LaunchDarkly Demo</title>
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>LaunchDarkly tutorial</title>
+		<script src="https://unpkg.com/launchdarkly-js-client-sdk@2"></script>
+	</head>
+	<body>
+		<script>
+			var user = {
+				firstName: 'Bob',
+				lastName: 'Loblaw',
+				key: 'UNIQUE IDENTIFIER',
+				custom: {
+					groups: 'beta_testers'
+				}
+			};
 
-	<!-- The snippet shown here will automatically update to the 
-	     newest release that has a major version of 2. A minor 
-	     version can be specified by including it in the url. -->
-	<script crossorigin="anonymous" src="https://unpkg.com/launchdarkly-js-client-sdk@2"></script>
+			var div = document.createElement('div');
+			document.body.appendChild(div);
 
-	<!-- styles from another project at https://github.com/crrood/adyen_integration_samples -->
-	<link rel="stylesheet" type="text/css" href="style.css"/>
-</head>
-<body>
-	
-</body>
+			div.appendChild(document.createTextNode('Initializing...'));
 
-<script type="module">
+			var ldclient = LDClient.initialize('5d53d66a2f46270880b324c5', user);
 
-// JS utilites from another project at
-// https://github.com/crrood/adyen_integration_samples
-import * as common from common.js
+			function render() {
+				var shouldShow = ldclient.variation('boolean-test', false);
+				var label = (shouldShow ? 'Showing' : 'Not showing') + ' your feature to ' + user.key;
+				div.replaceChild(document.createTextNode(label), div.firstChild);
+			}
 
-</script>
+			ldclient.on('ready', render);
+			ldclient.on('change', render);
+		</script>
+	</body>
+</html>
