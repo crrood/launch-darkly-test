@@ -6,30 +6,65 @@
 		<script src="https://unpkg.com/launchdarkly-js-client-sdk@2"></script>
 	</head>
 	<body>
+		<h4 id="userKey"></h4>
+		<br>
+		<div id="initializing">Initializing...</div>
+
 		<script>
-			var user = {
-				firstName: 'Bob',
-				lastName: 'Loblaw',
-				key: 'UNIQUE IDENTIFIER',
-				custom: {
-					groups: 'beta_testers'
+
+			// hardcoded users
+			const users = {
+				Bob: {
+					firstName: 'Bob',
+					lastName: 'Loblaw',
+					key: 'user-bob-loblaw',
+					custom: {
+						groups: 'beta_testers'
+					}
+				},
+				anonymous: {
+					anonymous: true
+				},
+				randomized: {
+					// set key to seconds since epoch
+					// for testing percentage rollouts
+					key: (new Date() / 1000)
 				}
-			};
-
-			var div = document.createElement('div');
-			document.body.appendChild(div);
-
-			div.appendChild(document.createTextNode('Initializing...'));
-
-			var ldclient = LDClient.initialize('5d53d66a2f46270880b324c5', user);
-
-			function render() {
-				var shouldShow = ldclient.variation('boolean-test', false);
-				var label = (shouldShow ? 'Showing' : 'Not showing') + ' your feature to ' + user.key;
-				div.replaceChild(document.createTextNode(label), div.firstChild);
 			}
 
-			ldclient.on('ready', render);
+			// which user to simulate
+			const user = users.randomized;
+			document.querySelector("#userKey").textContent = "User key: " + user.key;
+
+			// create a div with given text content
+			function createTextDiv(content) {
+				const div = document.createElement('div');
+				div.textContent = content;
+				document.body.appendChild(div);
+			}
+
+			// initialize SDK
+			const ldclient = LDClient.initialize('5d53d66a2f46270880b324c5', user);
+
+			// add items to DOM
+			function render() {
+
+				// boolean feature flag
+				const shouldShowBoolean = ldclient.variation('boolean-test', false);
+				createTextDiv('boolean-test: ' + (shouldShowBoolean ? 'Showing' : 'Not showing'));
+
+				// enum feature flag
+				const enumValue = ldclient.variation('enum-test', 'backup value');
+				createTextDiv('enum-test: ' + 'Showing ' + enumValue);
+			}
+
+			// called on loading the SDK
+			ldclient.on('ready', () => {
+				render();
+				document.querySelector("#initializing").remove();
+			});
+
+			// called on server-emitted events
 			ldclient.on('change', render);
 		</script>
 	</body>
